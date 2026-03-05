@@ -59,6 +59,17 @@
         .frueh { background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px; }
         .spaet { background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px; }
         .frei { background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999; }
+        
+        
+        .horizontal-scroll {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            overflow-x: auto;
+            padding: 5px 0;
+            scrollbar-width: thin;
+        }
+        
     </style>
 </head>
 <body>
@@ -266,31 +277,49 @@
         }
 
         function zeigeSchichten(schichten) {
-            let html = '';
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; overflow-x: auto; padding: 5px 0;">
+            `;
             
             schichten.forEach(s => {
-                html += `<div class="schicht-card">`;
-                html += `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;">`;
-                html += `<strong>${s.tag}</strong> <span style="color:#666;">${s.datum}</span>`;
-                html += `</div>`;
-
+                html += `
+                    <div style="min-width: 110px; background: white; border-radius: 10px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 8px;">
+                            <strong style="font-size: 14px;">${s.tag.substring(0,2)}</strong><br>
+                            <span style="font-size: 12px; color: #666;">${s.datum}</span>
+                        </div>
+                `;
+        
                 if (s.frueh?.hatSchicht) {
-                    html += `<div class="frueh">🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>`;
-                    html += `<small>${s.frueh.fahrzeug}</small></div>`;
+                    html += `
+                        <div style="background: #e3f2fd; border-radius: 5px; padding: 6px; margin-bottom: 4px; font-size: 12px;">
+                            🌅 ${s.frueh.von}<br>
+                            <small>${s.frueh.fahrzeug.split('-')[0]}</small>
+                        </div>
+                    `;
                 }
-
+        
                 if (s.spaet?.hatSchicht) {
-                    html += `<div class="spaet">🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>`;
-                    html += `<small>${s.spaet.fahrzeug}</small></div>`;
+                    html += `
+                        <div style="background: #fff3e0; border-radius: 5px; padding: 6px; margin-bottom: 4px; font-size: 12px;">
+                            🌇 ${s.spaet.von}<br>
+                            <small>${s.spaet.fahrzeug.split('-')[0]}</small>
+                        </div>
+                    `;
                 }
-
+        
                 if (!s.frueh?.hatSchicht && !s.spaet?.hatSchicht) {
-                    html += `<div class="frei">🆓 Frei</div>`;
+                    html += `
+                        <div style="background: #f5f5f5; border-radius: 5px; padding: 6px; text-align: center; font-size: 12px; color: #999;">
+                            🆓
+                        </div>
+                    `;
                 }
-
+        
                 html += `</div>`;
             });
-
+        
+            html += `</div>`;
             document.getElementById('schichtenContainer').innerHTML = html;
         }
 
@@ -343,3 +372,4 @@
     </script>
 </body>
 </html>
+
