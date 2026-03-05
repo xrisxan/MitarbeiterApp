@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mitarbeiter-App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+            .header h1 {
+                font-size: 28px;
+                margin-bottom: 10px;
+            }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+            input:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+
+            input[readonly] {
+                background-color: #f5f5f5;
+                color: #666;
+                cursor: not-allowed;
+            }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 10px;
+        }
+
+            button:hover {
+                opacity: 0.9;
+            }
+
+            button.link-button {
+                background: transparent;
+                color: #667eea;
+                box-shadow: none;
+            }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+
+            .message.success {
+                background: #d4edda;
+                color: #155724;
+                display: block;
+            }
+
+            .message.error {
+                background: #f8d7da;
+                color: #721c24;
+                display: block;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ MA-App</h1>
+            <p>Mitarbeiter-Portal</p>
+        </div>
+
+        <div class="content">
+            <!-- LOGIN VIEW -->
+            <div id="loginView">
+                <h2 style="margin-bottom: 20px;">👤 Mitarbeiter-Login</h2>
+
+                <div class="form-group">
+                    <label>Personalnummer</label>
+                    <input type="text" id="pnr" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Passwort</label>
+                    <input type="password" id="passwort" placeholder="Passwort eingeben">
+                </div>
+
+                <button onclick="login()">Anmelden</button>
+                <button class="link-button" onclick="zeigeAktivierung()">Noch nicht aktiviert?</button>
+
+                <div id="loginMessage" class="message"></div>
+            </div>
+
+            <!-- AKTIVIERUNG VIEW -->
+            <div id="aktivierungView" style="display: none;">
+                <h2 style="margin-bottom: 20px;">🔐 Passwort festlegen</h2>
+
+                <div class="form-group">
+                    <label>Personalnummer</label>
+                    <input type="text" id="aktivPnr" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Neues Passwort</label>
+                    <input type="password" id="neuPasswort" placeholder="mind. 6 Zeichen">
+                </div>
+
+                <div class="form-group">
+                    <label>Passwort wiederholen</label>
+                    <input type="password" id="neuPasswort2" placeholder="Passwort wiederholen">
+                </div>
+
+                <button onclick="aktivieren()">✅ Aktivieren</button>
+                <button class="link-button" onclick="zeigeLogin()">← Zurück zum Login</button>
+
+                <div id="aktivMessage" class="message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Server-URL aus aktueller URL ermitteln
+        const serverUrl = window.location.protocol + '//' + window.location.host;
+
+        // Beim Laden prüfen ob Token in URL
+        window.addEventListener('load', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const pnr = urlParams.get('pnr');
+
+            if (token && pnr) {
+                // Aktivierungsmodus
+                document.getElementById('aktivPnr').value = pnr;
+                zeigeAktivierung();
+            } else if (pnr) {
+                // Normaler Login
+                document.getElementById('pnr').value = pnr;
+            }
+        });
+
+        async function login() {
+            const pnr = document.getElementById('pnr').value;
+            const passwort = document.getElementById('passwort').value;
+
+            if (!pnr || !passwort) {
+                zeigeMeldung('loginMessage', 'Bitte Passwort eingeben!', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${serverUrl}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pnr, passwort })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    zeigeMeldung('loginMessage', 'Login erfolgreich!', 'success');
+                } else {
+                    zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
+                }
+            } catch (error) {
+                zeigeMeldung('loginMessage', 'Verbindungsfehler: ' + error.message, 'error');
+            }
+        }
+
+        async function aktivieren() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const pnr = document.getElementById('aktivPnr').value;
+
+            const pw1 = document.getElementById('neuPasswort').value;
+            const pw2 = document.getElementById('neuPasswort2').value;
+
+            if (!token || !pnr) {
+                zeigeMeldung('aktivMessage', '❌ Kein gültiger Aktivierungslink!', 'error');
+                return;
+            }
+
+            if (pw1.length < 6) {
+                zeigeMeldung('aktivMessage', '❌ Passwort muss mindestens 6 Zeichen sein!', 'error');
+                return;
+            }
+
+            if (pw1 !== pw2) {
+                zeigeMeldung('aktivMessage', '❌ Passwörter stimmen nicht überein!', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${serverUrl}/api/aktivieren`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, passwort: pw1 })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    zeigeMeldung('aktivMessage', '✅ Aktivierung erfolgreich!', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/?pnr=${pnr}`;
+                    }, 2000);
+                } else {
+                    zeigeMeldung('aktivMessage', '❌ Aktivierung fehlgeschlagen!', 'error');
+                }
+            } catch (error) {
+                zeigeMeldung('aktivMessage', 'Verbindungsfehler: ' + error.message, 'error');
+            }
+        }
+
+        function zeigeLogin() {
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('aktivierungView').style.display = 'none';
+
+            const pnr = document.getElementById('aktivPnr').value;
+            if (pnr) {
+                document.getElementById('pnr').value = pnr;
+            }
+        }
+
+        function zeigeAktivierung() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('aktivierungView').style.display = 'block';
+        }
+
+        function zeigeMeldung(elementId, text, typ) {
+            const msg = document.getElementById(elementId);
+            msg.textContent = text;
+            msg.className = 'message ' + typ;
+        }
+    </script>
+</body>
+</html>
