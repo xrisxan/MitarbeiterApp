@@ -346,78 +346,82 @@ async function ladeSchichtplan(kw, jahr) {
     }
 
     try {
-        // Header für die Anfrage
-        const headers = {};
-        const token = localStorage.getItem('token');
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        console.log(`Lade Schichtplan für:`, aktuellerMitarbeiter);
+        console.log('Lade Schichtplan für Mitarbeiter:', aktuellerMitarbeiter.id);
         
-        const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
-            headers: headers
-        });
-
+        const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP-Fehler: ${response.status}`);
+        }
+        
         const data = await response.json();
-        console.log('API-Antwort:', data); // ← WICHTIG: Schau in die Browser-Konsole (F12)!
+        console.log('API-Antwort erhalten:', data);
 
         if (data.success && data.schichten) {
-            console.log('Schichten geladen:', data.schichten.length);
             zeigeSchichten(data.schichten, kw, jahr);
-            zeigeMeldung('hauptMessage', '', 'success'); // Leere Erfolgsmeldung
+            zeigeMeldung('hauptMessage', '', 'success');
         } else {
-            console.error('Fehler in API-Antwort:', data);
-            zeigeMeldung('hauptMessage', '❌ Fehler beim Laden des Schichtplans: ' + (data.error || 'Unbekannter Fehler'), 'error');
+            zeigeMeldung('hauptMessage', '❌ Fehler beim Laden: ' + (data.error || 'Unbekannter Fehler'), 'error');
         }
     } catch (error) {
-        console.error('Netzwerkfehler:', error);
+        console.error('Fehler:', error);
         zeigeMeldung('hauptMessage', 'Verbindungsfehler: ' + error.message, 'error');
     }
 }
-        function zeigeSchichten(schichten, kw, jahr) {
-            let html = '';
+function zeigeSchichten(schichten, kw, jahr) {
+    console.log('Zeige Schichten:', schichten); // Debug-Ausgabe
+    
+    if (!schichten || schichten.length === 0) {
+        document.getElementById('schichtenContainer').innerHTML = '<p style="text-align: center; color: #999;">Keine Schichten für diese Woche</p>';
+        return;
+    }
 
-            schichten.forEach(s => {
-                html += `
-                        <div class="schicht-card" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <strong style="font-size: 16px;">${s.tag}</strong>
-                                <span style="color: #666;">${s.datum}</span>
-                            </div>
-                    `;
+    let html = '';
 
-                if (s.frueh && s.frueh.hatSchicht) {
-                    html += `
-                            <div style="background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                                🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>
-                                <small style="color: #555;">${s.frueh.fahrzeug}</small>
-                            </div>
-                        `;
-                }
+    schichten.forEach(s => {
+        html += `
+            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <strong style="font-size: 16px;">${s.tag}</strong>
+                    <span style="color: #666;">${s.datum}</span>
+                </div>
+        `;
 
-                if (s.spaet && s.spaet.hatSchicht) {
-                    html += `
-                            <div style="background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                                🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>
-                                <small style="color: #555;">${s.spaet.fahrzeug}</small>
-                            </div>
-                        `;
-                }
-
-                if ((!s.frueh || !s.frueh.hatSchicht) && (!s.spaet || !s.spaet.hatSchicht)) {
-                    html += `
-                            <div style="background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999;">
-                                🆓 Frei
-                            </div>
-                        `;
-                }
-
-                html += `</div>`;
-            });
-
-            document.getElementById('schichtenContainer').innerHTML = html;
+        // Frühschicht
+        if (s.frueh && s.frueh.hatSchicht) {
+            html += `
+                <div style="background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                    🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>
+                    <small style="color: #555;">${s.frueh.fahrzeug}</small>
+                </div>
+            `;
         }
+
+        // Spätschicht
+        if (s.spaet && s.spaet.hatSchicht) {
+            html += `
+                <div style="background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                    🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>
+                    <small style="color: #555;">${s.spaet.fahrzeug}</small>
+                </div>
+            `;
+        }
+
+        // Frei
+        if ((!s.frueh || !s.frueh.hatSchicht) && (!s.spaet || !s.spaet.hatSchicht)) {
+            html += `
+                <div style="background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999;">
+                    🆓 Frei
+                </div>
+            `;
+        }
+
+        html += `</div>`;
+    });
+
+    document.getElementById('schichtenContainer').innerHTML = html;
+    console.log('HTML eingefügt'); // Debug-Ausgabe
+}
 
         function getKalenderwoche(date) {
             const d = new Date(date);
@@ -486,4 +490,5 @@ async function ladeSchichtplan(kw, jahr) {
     </script>
 </body>
 </html>
+
 
