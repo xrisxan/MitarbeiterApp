@@ -339,35 +339,42 @@
         // SCHICHTPLAN FUNKTIONEN
         // ============================================================
 
-        async function ladeSchichtplan(kw, jahr) {
-            if (!aktuellerMitarbeiter) {
-                zeigeMeldung('hauptMessage', '❌ Kein Mitarbeiter eingeloggt', 'error');
-                return;
-            }
+async function ladeSchichtplan(kw, jahr) {
+    if (!aktuellerMitarbeiter) {
+        zeigeMeldung('hauptMessage', '❌ Kein Mitarbeiter eingeloggt', 'error');
+        return;
+    }
 
-            try {
-                // Header für die Anfrage
-                const headers = {};
-                const token = localStorage.getItem('token');
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
-                    headers: headers
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    zeigeSchichten(data.schichten, kw, jahr);
-                } else {
-                    zeigeMeldung('hauptMessage', '❌ Fehler beim Laden des Schichtplans', 'error');
-                }
-            } catch (error) {
-                zeigeMeldung('hauptMessage', 'Verbindungsfehler: ' + error.message, 'error');
-            }
+    try {
+        // Header für die Anfrage
+        const headers = {};
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
+
+        console.log(`Lade Schichtplan für:`, aktuellerMitarbeiter);
+        
+        const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
+            headers: headers
+        });
+
+        const data = await response.json();
+        console.log('API-Antwort:', data); // ← WICHTIG: Schau in die Browser-Konsole (F12)!
+
+        if (data.success && data.schichten) {
+            console.log('Schichten geladen:', data.schichten.length);
+            zeigeSchichten(data.schichten, kw, jahr);
+            zeigeMeldung('hauptMessage', '', 'success'); // Leere Erfolgsmeldung
+        } else {
+            console.error('Fehler in API-Antwort:', data);
+            zeigeMeldung('hauptMessage', '❌ Fehler beim Laden des Schichtplans: ' + (data.error || 'Unbekannter Fehler'), 'error');
+        }
+    } catch (error) {
+        console.error('Netzwerkfehler:', error);
+        zeigeMeldung('hauptMessage', 'Verbindungsfehler: ' + error.message, 'error');
+    }
+}
         function zeigeSchichten(schichten, kw, jahr) {
             let html = '';
 
@@ -479,3 +486,4 @@
     </script>
 </body>
 </html>
+
