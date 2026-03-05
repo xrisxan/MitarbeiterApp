@@ -63,88 +63,67 @@
         }
         .message.success { background: #d4edda; color: #155724; display: block; }
         .message.error { background: #f8d7da; color: #721c24; display: block; }
-        .schicht-card {
-            background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .frueh { background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px; }
-        .spaet { background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px; }
-        .frei { background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999; }
-        
-        
-        .horizontal-scroll {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            overflow-x: auto;
-            padding: 5px 0;
-            scrollbar-width: thin;
-        }
-        @media screen and (min-width: 800px) {
-            #schichtenContainer > div {
-        grid-template-columns: repeat(7, minmax(180px, 1fr)) !important;
-    }
-}
     </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>⚡ MA-App</h1>
-                        <p>Mitarbeiter-Portal</p>
-                    </div>
-            <div class="content">
-                <!-- LOGIN VIEW (schmal) -->
-                <div id="loginView" style="max-width: 400px; margin: 0 auto;">
-                    <h2 style="margin-bottom: 20px;">👤 Mitarbeiter-Login</h2>
-                    <div class="form-group">
-                        <label>Personalnummer</label>
-                        <input type="text" id="pnr" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Passwort</label>
-                        <input type="password" id="passwort" placeholder="Passwort eingeben">
-                    </div>
-                    <button onclick="login()">Anmelden</button>
-                    <button class="link-button" onclick="zeigeAktivierung()">Noch nicht aktiviert?</button>
-                    <div id="loginMessage" class="message"></div>
+</head>
+<body>
+    <div class="container schmal">
+        <div class="header">
+            <h1>⚡ MA-App</h1>
+            <p>Mitarbeiter-Portal</p>
+        </div>
+        
+        <div class="content">
+            <!-- LOGIN VIEW -->
+            <div id="loginView">
+                <h2 style="margin-bottom: 20px;">👤 Mitarbeiter-Login</h2>
+                <div class="form-group">
+                    <label>Personalnummer</label>
+                    <input type="text" id="pnr" readonly>
                 </div>
-            
-                <!-- AKTIVIERUNG VIEW (schmal) -->
-                <div id="aktivierungView" style="max-width: 400px; margin: 0 auto; display: none;">
-                    <h2 style="margin-bottom: 20px;">🔐 Passwort festlegen</h2>
-                    <div class="form-group">
-                        <label>Personalnummer</label>
-                        <input type="text" id="aktivPnr" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Neues Passwort</label>
-                        <input type="password" id="neuPasswort" placeholder="mind. 6 Zeichen">
-                    </div>
-                    <div class="form-group">
-                        <label>Passwort wiederholen</label>
-                        <input type="password" id="neuPasswort2" placeholder="Passwort wiederholen">
-                    </div>
-                    <button onclick="aktivieren()">✅ Aktivieren</button>
-                    <button class="link-button" onclick="zeigeLogin()">← Zurück zum Login</button>
-                    <div id="aktivMessage" class="message"></div>
+                <div class="form-group">
+                    <label>Passwort</label>
+                    <input type="password" id="passwort" placeholder="Passwort eingeben">
                 </div>
-            
-                <!-- HAUPTANSICHT (breit) -->
-                <div id="hauptView" style="width: 100%; display: none;">
-                    <h2 style="margin-bottom: 20px;">📅 Meine Schichten</h2>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                        <button onclick="vorherigeWoche()" style="width: 30%; padding: 8px;">← Vorherige</button>
-                        <span style="font-weight: bold; padding: 8px;">KW <span id="kwWert">10</span>/<span id="jahrWert">2026</span></span>
-                        <button onclick="naechsteWoche()" style="width: 30%; padding: 8px;">Nächste →</button>
-                    </div>
-                    <div id="schichtenContainer">
-                        <p style="text-align: center; color: #999;">Keine Schichten geladen</p>
-                    </div>
-                    <div id="hauptMessage" class="message"></div>
-                    <button class="link-button" onclick="logout()" style="margin-top: 20px;">🚪 Abmelden</button>
-                </div>
+                <button onclick="login()">Anmelden</button>
+                <button class="link-button" onclick="zeigeAktivierung()">Noch nicht aktiviert?</button>
+                <div id="loginMessage" class="message"></div>
             </div>
+
+            <!-- AKTIVIERUNG VIEW -->
+            <div id="aktivierungView" style="display: none;">
+                <h2 style="margin-bottom: 20px;">🔐 Passwort festlegen</h2>
+                <div class="form-group">
+                    <label>Personalnummer</label>
+                    <input type="text" id="aktivPnr" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Neues Passwort</label>
+                    <input type="password" id="neuPasswort" placeholder="mind. 6 Zeichen">
+                </div>
+                <div class="form-group">
+                    <label>Passwort wiederholen</label>
+                    <input type="password" id="neuPasswort2" placeholder="Passwort wiederholen">
+                </div>
+                <button onclick="aktivieren()">✅ Aktivieren</button>
+                <button class="link-button" onclick="zeigeLogin()">← Zurück zum Login</button>
+                <div id="aktivMessage" class="message"></div>
+            </div>
+
+            <!-- HAUPTANSICHT -->
+            <div id="hauptView" style="display: none;">
+                <h2 style="margin-bottom: 20px;">📅 Meine Schichten</h2>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <button onclick="vorherigeWoche()" style="width: 30%; padding: 8px;">← Vorherige</button>
+                    <span style="font-weight: bold; padding: 8px;">KW <span id="kwWert">10</span>/<span id="jahrWert">2026</span></span>
+                    <button onclick="naechsteWoche()" style="width: 30%; padding: 8px;">Nächste →</button>
+                </div>
+                <div id="schichtenContainer">
+                    <p style="text-align: center; color: #999;">Keine Schichten geladen</p>
+                </div>
+                <div id="hauptMessage" class="message"></div>
+                <button class="link-button" onclick="logout()" style="margin-top: 20px;">🚪 Abmelden</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -387,16 +366,9 @@
                 zeigeAktivierung();
             } else if (pnr) {
                 document.getElementById('pnr').value = pnr;
+                zeigeLogin();
             }
         });
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
