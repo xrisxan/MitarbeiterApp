@@ -2,479 +2,135 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitarbeiter-App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA-App</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            width: 100%;
-            max-width: 400px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
-
-            .header h1 {
-                font-size: 28px;
-                margin-bottom: 10px;
-            }
-
-        .content {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-            input:focus {
-                outline: none;
-                border-color: #667eea;
-            }
-
-            input[readonly] {
-                background-color: #f5f5f5;
-                color: #666;
-                cursor: not-allowed;
-            }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: 10px;
-        }
-
-            button:hover {
-                opacity: 0.9;
-            }
-
-            button.link-button {
-                background: transparent;
-                color: #667eea;
-                box-shadow: none;
-            }
-
-        .message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 14px;
-            display: none;
-        }
-
-            .message.success {
-                background: #d4edda;
-                color: #155724;
-                display: block;
-            }
-
-            .message.error {
-                background: #f8d7da;
-                color: #721c24;
-                display: block;
-            }
+        body { font-family: Arial; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
+        .container { background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 20px; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; }
+        button { background: #667eea; color: white; border: none; cursor: pointer; }
+        .message { padding: 10px; border-radius: 5px; margin: 10px 0; display: none; }
+        .success { background: #d4edda; color: #155724; display: block; }
+        .error { background: #f8d7da; color: #721c24; display: block; }
+        #aktivierungView, #hauptView { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>⚡ MA-App</h1>
-            <p>Mitarbeiter-Portal</p>
+        <h2 style="text-align: center;">⚡ MA-App</h2>
+        
+        <!-- LOGIN -->
+        <div id="loginView">
+            <h3>Mitarbeiter-Login</h3>
+            <input type="text" id="pnr" placeholder="Personalnummer">
+            <input type="password" id="passwort" placeholder="Passwort">
+            <button onclick="login()">Anmelden</button>
+            <button onclick="zeigeAktivierung()">Noch nicht aktiviert?</button>
+            <div id="loginMessage" class="message"></div>
         </div>
 
-        <div class="content">
-            <!-- LOGIN VIEW -->
-            <div id="loginView">
-                <h2 style="margin-bottom: 20px;">👤 Mitarbeiter-Login</h2>
-
-                <div class="form-group">
-                    <label>Personalnummer</label>
-                    <input type="text" id="pnr" readonly>
-                </div>
-
-                <div class="form-group">
-                    <label>Passwort</label>
-                    <input type="password" id="passwort" placeholder="Passwort eingeben">
-                </div>
-
-                <button onclick="login()">Anmelden</button>
-                <button class="link-button" onclick="zeigeAktivierung()">Noch nicht aktiviert?</button>
-
-                <div id="loginMessage" class="message"></div>
-            </div>
-
-            <!-- AKTIVIERUNG VIEW -->
-            <div id="aktivierungView" style="display: none;">
-                <h2 style="margin-bottom: 20px;">🔐 Passwort festlegen</h2>
-
-                <div class="form-group">
-                    <label>Personalnummer</label>
-                    <input type="text" id="aktivPnr" readonly>
-                </div>
-
-                <div class="form-group">
-                    <label>Neues Passwort</label>
-                    <input type="password" id="neuPasswort" placeholder="mind. 6 Zeichen">
-                </div>
-
-                <div class="form-group">
-                    <label>Passwort wiederholen</label>
-                    <input type="password" id="neuPasswort2" placeholder="Passwort wiederholen">
-                </div>
-
-                <button onclick="aktivieren()">✅ Aktivieren</button>
-                <button class="link-button" onclick="zeigeLogin()">← Zurück zum Login</button>
-
-                <div id="aktivMessage" class="message"></div>
-            </div>
-        </div>
-
-        <!-- HAUPTANSICHT (nach Login) -->
-        <div id="hauptView" style="display: none;">
-            <h2 style="margin-bottom: 20px;">📅 Meine Schichten</h2>
-
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <button onclick="vorherigeWoche()" style="width: 30%; padding: 8px;">← Vorherige</button>
-                <span id="kwAnzeige" style="font-weight: bold; padding: 8px;">KW <span id="kwWert">10</span>/<span id="jahrWert">2026</span></span>
-                <button onclick="naechsteWoche()" style="width: 30%; padding: 8px;">Nächste →</button>
-            </div>
-
-            <div id="schichtenContainer">
-                <!-- Hier werden die Schichten dynamisch geladen -->
-                <p style="text-align: center; color: #999;">Keine Schichten gefunden</p>
-            </div>
-
-            <div id="hauptMessage" class="message"></div>
-
-            <button class="link-button" onclick="logout()" style="margin-top: 20px;">🚪 Abmelden</button>
+        <!-- AKTIVIERUNG -->
+        <div id="aktivierungView">
+            <h3>Passwort festlegen</h3>
+            <input type="text" id="aktivPnr" placeholder="Personalnummer" readonly>
+            <input type="password" id="neuPasswort" placeholder="Neues Passwort">
+            <input type="password" id="neuPasswort2" placeholder="Wiederholen">
+            <button onclick="aktivieren()">Aktivieren</button>
+            <button onclick="zeigeLogin()">Zurück</button>
+            <div id="aktivMessage" class="message"></div>
         </div>
     </div>
 
     <script>
-        // Server-URL
         const serverUrl = 'https://mitarbeiter-api.xrisxan.workers.dev';
-
-        // Globale Variablen
-        let aktuellerMitarbeiter = null;
-        let aktuelleKW = 0;
-        let aktuellesJahr = 0;
-
-        // ============================================================
-        // HILFSFUNKTIONEN (müssen VOR login() kommen)
-        // ============================================================
-
-        function zeigeMeldung(elementId, text, typ) {
-            const msg = document.getElementById(elementId);
+        
+        function zeigeLogin() {
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('aktivierungView').style.display = 'none';
+        }
+        
+        function zeigeAktivierung() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('aktivierungView').style.display = 'block';
+        }
+        
+        function zeigeMeldung(id, text, typ) {
+            const msg = document.getElementById(id);
             msg.textContent = text;
             msg.className = 'message ' + typ;
         }
 
-        function zeigeLogin() {
-            document.getElementById('loginView').style.display = 'block';
-            document.getElementById('aktivierungView').style.display = 'none';
-            document.getElementById('hauptView').style.display = 'none';
-
-            const pnr = document.getElementById('aktivPnr').value;
-            if (pnr) {
-                document.getElementById('pnr').value = pnr;
-            }
-        }
-
-        function zeigeAktivierung() {
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('aktivierungView').style.display = 'block';
-            document.getElementById('hauptView').style.display = 'none';
-        }
-
-        function zeigeHauptansicht() {
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('aktivierungView').style.display = 'none';
-            document.getElementById('hauptView').style.display = 'block';
-        }
-
-        // ============================================================
-        // LOGIN (die EINZIGE login-Funktion)
-        // ============================================================
-
         async function login() {
             const pnr = document.getElementById('pnr').value;
             const passwort = document.getElementById('passwort').value;
-
+            
             if (!pnr || !passwort) {
-                zeigeMeldung('loginMessage', 'Bitte Passwort eingeben!', 'error');
+                zeigeMeldung('loginMessage', 'Bitte alles ausfüllen!', 'error');
                 return;
             }
-
+            
             try {
                 const response = await fetch(`${serverUrl}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pnr, passwort })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (data.success) {
-                    aktuellerMitarbeiter = data.mitarbeiter;
-                    localStorage.setItem('token', data.token);
-
-                    // Zur Hauptansicht wechseln
-                    zeigeHauptansicht();
-
-                    // Aktuelle KW ermitteln und Schichtplan laden
-                    const jetzt = new Date();
-                    aktuelleKW = getKalenderwoche(jetzt);
-                    aktuellesJahr = jetzt.getFullYear();
-
-                    document.getElementById('kwWert').textContent = aktuelleKW;
-                    document.getElementById('jahrWert').textContent = aktuellesJahr;
-
-                    ladeSchichtplan(aktuelleKW, aktuellesJahr);
+                    zeigeMeldung('loginMessage', 'Login erfolgreich!', 'success');
                 } else {
-                    zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
+                    zeigeMeldung('loginMessage', 'Falsches Passwort!', 'error');
                 }
             } catch (error) {
-                zeigeMeldung('loginMessage', 'Verbindungsfehler: ' + error.message, 'error');
+                zeigeMeldung('loginMessage', 'Fehler: ' + error.message, 'error');
             }
         }
-
-        // ============================================================
-        // AKTIVIERUNG
-        // ============================================================
 
         async function aktivieren() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             const pnr = document.getElementById('aktivPnr').value;
-
             const pw1 = document.getElementById('neuPasswort').value;
             const pw2 = document.getElementById('neuPasswort2').value;
-
+            
             if (!token || !pnr) {
-                zeigeMeldung('aktivMessage', '❌ Kein gültiger Aktivierungslink!', 'error');
+                zeigeMeldung('aktivMessage', 'Kein gültiger Link!', 'error');
                 return;
             }
-
-            if (pw1.length < 6) {
-                zeigeMeldung('aktivMessage', '❌ Passwort muss mindestens 6 Zeichen sein!', 'error');
+            
+            if (pw1 !== pw2 || pw1.length < 6) {
+                zeigeMeldung('aktivMessage', 'Passwort-Fehler!', 'error');
                 return;
             }
-
-            if (pw1 !== pw2) {
-                zeigeMeldung('aktivMessage', '❌ Passwörter stimmen nicht überein!', 'error');
-                return;
-            }
-
+            
             try {
                 const response = await fetch(`${serverUrl}/api/aktivieren`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token, passwort: pw1 })
                 });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    zeigeMeldung('aktivMessage', '✅ Aktivierung erfolgreich!', 'success');
-                    setTimeout(() => {
-                        window.location.href = `/?pnr=${pnr}`;
-                    }, 2000);
-                } else {
-                    zeigeMeldung('aktivMessage', '❌ Aktivierung fehlgeschlagen!', 'error');
+                
+                if (response.ok) {
+                    zeigeMeldung('aktivMessage', 'Aktivierung erfolgreich!', 'success');
                 }
             } catch (error) {
-                zeigeMeldung('aktivMessage', 'Verbindungsfehler: ' + error.message, 'error');
+                zeigeMeldung('aktivMessage', 'Fehler: ' + error.message, 'error');
             }
         }
 
-        // ============================================================
-        // SCHICHTPLAN FUNKTIONEN
-        // ============================================================
-
-        async function ladeSchichtplan(kw, jahr) {
-            if (!aktuellerMitarbeiter) {
-                zeigeMeldung('hauptMessage', '❌ Kein Mitarbeiter eingeloggt', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
-                    const headers = {};
-                    if(localStorage.getItem('token')) {
-                        headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
-            }
-
-                    const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
-                headers: headers
-            });
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    zeigeSchichten(data.schichten, kw, jahr);
-                } else {
-                    zeigeMeldung('hauptMessage', '❌ Fehler beim Laden des Schichtplans', 'error');
-                }
-            } catch (error) {
-                zeigeMeldung('hauptMessage', 'Verbindungsfehler: ' + error.message, 'error');
-            }
-        }
-
-        function zeigeSchichten(schichten, kw, jahr) {
-            let html = '';
-
-            schichten.forEach(s => {
-                html += `
-                        <div class="schicht-card" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <strong style="font-size: 16px;">${s.tag}</strong>
-                                <span style="color: #666;">${s.datum}</span>
-                            </div>
-                    `;
-
-                if (s.frueh && s.frueh.hatSchicht) {
-                    html += `
-                            <div style="background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                                🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>
-                                <small style="color: #555;">${s.frueh.fahrzeug}</small>
-                            </div>
-                        `;
-                }
-
-                if (s.spaet && s.spaet.hatSchicht) {
-                    html += `
-                            <div style="background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                                🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>
-                                <small style="color: #555;">${s.spaet.fahrzeug}</small>
-                            </div>
-                        `;
-                }
-
-                if ((!s.frueh || !s.frueh.hatSchicht) && (!s.spaet || !s.spaet.hatSchicht)) {
-                    html += `
-                            <div style="background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999;">
-                                🆓 Frei
-                            </div>
-                        `;
-                }
-
-                html += `</div>`;
-            });
-
-            document.getElementById('schichtenContainer').innerHTML = html;
-        }
-
-        function getKalenderwoche(date) {
-            const d = new Date(date);
-            d.setHours(0, 0, 0, 0);
-            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-            const week1 = new Date(d.getFullYear(), 0, 4);
-            return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-        }
-
-        function vorherigeWoche() {
-            aktuelleKW--;
-            if (aktuelleKW < 1) {
-                aktuelleKW = 52;
-                aktuellesJahr--;
-            }
-            document.getElementById('kwWert').textContent = aktuelleKW;
-            document.getElementById('jahrWert').textContent = aktuellesJahr;
-            ladeSchichtplan(aktuelleKW, aktuellesJahr);
-        }
-
-        function naechsteWoche() {
-            aktuelleKW++;
-            if (aktuelleKW > 52) {
-                aktuelleKW = 1;
-                aktuellesJahr++;
-            }
-            document.getElementById('kwWert').textContent = aktuelleKW;
-            document.getElementById('jahrWert').textContent = aktuellesJahr;
-            ladeSchichtplan(aktuelleKW, aktuellesJahr);
-        }
-
-        function logout() {
-            aktuellerMitarbeiter = null;
-            localStorage.removeItem('token');
-            document.getElementById('hauptView').style.display = 'none';
-            document.getElementById('loginView').style.display = 'block';
-            document.getElementById('passwort').value = '';
-
-            // PNR wieder aus der URL holen
-            const urlParams = new URLSearchParams(window.location.search);
-            const pnr = urlParams.get('pnr');
-            if (pnr) {
-                document.getElementById('pnr').value = pnr;
-            }
-        }
-
-        // ============================================================
-        // BEIM LADEN
-        // ============================================================
-
-        window.addEventListener('load', function () {
+        // Beim Laden prüfen
+        window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             const pnr = urlParams.get('pnr');
-
+            
             if (token && pnr) {
-                // Aktivierungsmodus
                 document.getElementById('aktivPnr').value = pnr;
                 zeigeAktivierung();
             } else if (pnr) {
-                // Normaler Login
                 document.getElementById('pnr').value = pnr;
-                zeigeLogin();
             }
         });
     </script>
