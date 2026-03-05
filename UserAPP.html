@@ -171,43 +171,43 @@
         // LOGIN
         // ============================================================
         async function login() {
-            const pnr = document.getElementById('pnr').value;
-            const passwort = document.getElementById('passwort').value;
-
-            if (!pnr || !passwort) {
-                zeigeMeldung('loginMessage', 'Bitte Passwort eingeben!', 'error');
-                return;
+          const pnr = document.getElementById('pnr').value;
+          const passwort = document.getElementById('passwort').value;
+        
+          if (!pnr || !passwort) {
+            zeigeMeldung('loginMessage', 'Bitte Passwort eingeben!', 'error');
+            return;
+          }
+        
+          try {
+            const response = await fetch(`${serverUrl}?action=login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pnr, passwort })
+            });
+        
+            const data = await response.json();
+        
+            if (data.success && data.mitarbeiter) {
+              aktuellerMitarbeiter = data.mitarbeiter;
+              localStorage.setItem('token', data.token);
+              
+              zeigeHauptansicht();
+              
+              const jetzt = new Date();
+              aktuelleKW = getKalenderwoche(jetzt);
+              aktuellesJahr = jetzt.getFullYear();
+              
+              document.getElementById('kwWert').textContent = aktuelleKW;
+              document.getElementById('jahrWert').textContent = aktuellesJahr;
+              
+              ladeSchichtplan(aktuelleKW, aktuellesJahr);
+            } else {
+              zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
             }
-
-            try {
-                const response = await fetch(`${serverUrl}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pnr, passwort })
-                });
-
-                const data = await response.json();
-
-                if (data.success && data.mitarbeiter) {
-                    aktuellerMitarbeiter = data.mitarbeiter;
-                    localStorage.setItem('token', data.token);
-                    
-                    zeigeHauptansicht();
-                    
-                    const jetzt = new Date();
-                    aktuelleKW = getKalenderwoche(jetzt);
-                    aktuellesJahr = jetzt.getFullYear();
-                    
-                    document.getElementById('kwWert').textContent = aktuelleKW;
-                    document.getElementById('jahrWert').textContent = aktuellesJahr;
-                    
-                    ladeSchichtplan(aktuelleKW, aktuellesJahr);
-                } else {
-                    zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
-                }
-            } catch (error) {
-                zeigeMeldung('loginMessage', 'Fehler: ' + error.message, 'error');
-            }
+          } catch (error) {
+            zeigeMeldung('loginMessage', 'Fehler: ' + error.message, 'error');
+          }
         }
 
         // ============================================================
@@ -250,29 +250,29 @@
         // SCHICHTPLAN
         // ============================================================
         async function ladeSchichtplan(kw, jahr) {
-            if (!aktuellerMitarbeiter) {
-                zeigeMeldung('hauptMessage', '❌ Kein Mitarbeiter eingeloggt', 'error');
-                return;
+          if (!aktuellerMitarbeiter) {
+            zeigeMeldung('hauptMessage', '❌ Kein Mitarbeiter eingeloggt', 'error');
+            return;
+          }
+        
+          try {
+            const response = await fetch(`${serverUrl}?action=schichten&mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
             }
-
-            try {
-                const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.schichten) {
-                    zeigeSchichten(data.schichten);
-                    zeigeMeldung('hauptMessage', '', 'success');
-                } else {
-                    zeigeMeldung('hauptMessage', '❌ Keine Schichten gefunden', 'error');
-                }
-            } catch (error) {
-                zeigeMeldung('hauptMessage', 'Fehler: ' + error.message, 'error');
+            
+            const data = await response.json();
+            
+            if (data.success && data.schichten) {
+              zeigeSchichten(data.schichten);
+              zeigeMeldung('hauptMessage', '', 'success');
+            } else {
+              zeigeMeldung('hauptMessage', '❌ Keine Schichten gefunden', 'error');
             }
+          } catch (error) {
+            zeigeMeldung('hauptMessage', 'Fehler: ' + error.message, 'error');
+          }
         }
 
         function zeigeSchichten(schichten) {
@@ -372,6 +372,7 @@
     </script>
 </body>
 </html>
+
 
 
 
