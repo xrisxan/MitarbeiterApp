@@ -176,7 +176,7 @@
                 <div id="aktivMessage" class="message"></div>
             </div>
         </div>
-        
+
         <!-- HAUPTANSICHT (nach Login) -->
         <div id="hauptView" style="display: none;">
             <h2 style="margin-bottom: 20px;">📅 Meine Schichten</h2>
@@ -199,9 +199,9 @@
     </div>
 
     <script>
-        // Server-URL 
+        // Server-URL
         const serverUrl = 'https://mitarbeiter-api.xrisxan.workers.dev';
-        
+
         // Globale Variablen
         let aktuellerMitarbeiter = null;
         let aktuelleKW = 0;
@@ -210,7 +210,7 @@
         // ============================================================
         // HILFSFUNKTIONEN (müssen VOR login() kommen)
         // ============================================================
-        
+
         function zeigeMeldung(elementId, text, typ) {
             const msg = document.getElementById(elementId);
             msg.textContent = text;
@@ -243,7 +243,7 @@
         // ============================================================
         // LOGIN (die EINZIGE login-Funktion)
         // ============================================================
-        
+
         async function login() {
             const pnr = document.getElementById('pnr').value;
             const passwort = document.getElementById('passwort').value;
@@ -265,7 +265,7 @@
                 if (data.success) {
                     aktuellerMitarbeiter = data.mitarbeiter;
                     localStorage.setItem('token', data.token);
-                    
+
                     // Zur Hauptansicht wechseln
                     zeigeHauptansicht();
 
@@ -273,10 +273,10 @@
                     const jetzt = new Date();
                     aktuelleKW = getKalenderwoche(jetzt);
                     aktuellesJahr = jetzt.getFullYear();
-                    
+
                     document.getElementById('kwWert').textContent = aktuelleKW;
                     document.getElementById('jahrWert').textContent = aktuellesJahr;
-                    
+
                     ladeSchichtplan(aktuelleKW, aktuellesJahr);
                 } else {
                     zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
@@ -289,7 +289,7 @@
         // ============================================================
         // AKTIVIERUNG
         // ============================================================
-        
+
         async function aktivieren() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
@@ -347,9 +347,14 @@
 
             try {
                 const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    const headers = {};
+                    if(localStorage.getItem('token')) {
+                        headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+            }
+
+                    const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
+                headers: headers
+            });
                 });
 
                 const data = await response.json();
@@ -369,37 +374,37 @@
 
             schichten.forEach(s => {
                 html += `
-                    <div class="schicht-card" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <strong style="font-size: 16px;">${s.tag}</strong>
-                            <span style="color: #666;">${s.datum}</span>
-                        </div>
-                `;
+                        <div class="schicht-card" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <strong style="font-size: 16px;">${s.tag}</strong>
+                                <span style="color: #666;">${s.datum}</span>
+                            </div>
+                    `;
 
                 if (s.frueh && s.frueh.hatSchicht) {
                     html += `
-                        <div style="background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                            🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>
-                            <small style="color: #555;">${s.frueh.fahrzeug}</small>
-                        </div>
-                    `;
+                            <div style="background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                                🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>
+                                <small style="color: #555;">${s.frueh.fahrzeug}</small>
+                            </div>
+                        `;
                 }
 
                 if (s.spaet && s.spaet.hatSchicht) {
                     html += `
-                        <div style="background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                            🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>
-                            <small style="color: #555;">${s.spaet.fahrzeug}</small>
-                        </div>
-                    `;
+                            <div style="background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                                🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>
+                                <small style="color: #555;">${s.spaet.fahrzeug}</small>
+                            </div>
+                        `;
                 }
 
                 if ((!s.frueh || !s.frueh.hatSchicht) && (!s.spaet || !s.spaet.hatSchicht)) {
                     html += `
-                        <div style="background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999;">
-                            🆓 Frei
-                        </div>
-                    `;
+                            <div style="background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999;">
+                                🆓 Frei
+                            </div>
+                        `;
                 }
 
                 html += `</div>`;
@@ -444,7 +449,7 @@
             document.getElementById('hauptView').style.display = 'none';
             document.getElementById('loginView').style.display = 'block';
             document.getElementById('passwort').value = '';
-            
+
             // PNR wieder aus der URL holen
             const urlParams = new URLSearchParams(window.location.search);
             const pnr = urlParams.get('pnr');
@@ -456,7 +461,7 @@
         // ============================================================
         // BEIM LADEN
         // ============================================================
-        
+
         window.addEventListener('load', function () {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
