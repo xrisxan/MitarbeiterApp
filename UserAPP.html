@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -176,29 +176,74 @@
                 <div id="aktivMessage" class="message"></div>
             </div>
         </div>
+        
+        <!-- HAUPTANSICHT (nach Login) -->
+        <div id="hauptView" style="display: none;">
+            <h2 style="margin-bottom: 20px;">📅 Meine Schichten</h2>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <button onclick="vorherigeWoche()" style="width: 30%; padding: 8px;">← Vorherige</button>
+                <span id="kwAnzeige" style="font-weight: bold; padding: 8px;">KW <span id="kwWert">10</span>/<span id="jahrWert">2026</span></span>
+                <button onclick="naechsteWoche()" style="width: 30%; padding: 8px;">Nächste →</button>
+            </div>
+
+            <div id="schichtenContainer">
+                <!-- Hier werden die Schichten dynamisch geladen -->
+                <p style="text-align: center; color: #999;">Keine Schichten gefunden</p>
+            </div>
+
+            <div id="hauptMessage" class="message"></div>
+
+            <button class="link-button" onclick="logout()" style="margin-top: 20px;">🚪 Abmelden</button>
+        </div>
     </div>
 
     <script>
-        // Server-URL aus aktueller URL ermitteln
-// Server-URL für die API (Cloudflare Workers)
+        // Server-URL 
         const serverUrl = 'https://mitarbeiter-api.xrisxan.workers.dev';
+        
+        // Globale Variablen
+        let aktuellerMitarbeiter = null;
+        let aktuelleKW = 0;
+        let aktuellesJahr = 0;
 
-        // Beim Laden prüfen ob Token in URL
-        window.addEventListener('load', function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            const pnr = urlParams.get('pnr');
+        // ============================================================
+        // HILFSFUNKTIONEN (müssen VOR login() kommen)
+        // ============================================================
+        
+        function zeigeMeldung(elementId, text, typ) {
+            const msg = document.getElementById(elementId);
+            msg.textContent = text;
+            msg.className = 'message ' + typ;
+        }
 
-            if (token && pnr) {
-                // Aktivierungsmodus
-                document.getElementById('aktivPnr').value = pnr;
-                zeigeAktivierung();
-            } else if (pnr) {
-                // Normaler Login
+        function zeigeLogin() {
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('aktivierungView').style.display = 'none';
+            document.getElementById('hauptView').style.display = 'none';
+
+            const pnr = document.getElementById('aktivPnr').value;
+            if (pnr) {
                 document.getElementById('pnr').value = pnr;
             }
-        });
+        }
 
+        function zeigeAktivierung() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('aktivierungView').style.display = 'block';
+            document.getElementById('hauptView').style.display = 'none';
+        }
+
+        function zeigeHauptansicht() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('aktivierungView').style.display = 'none';
+            document.getElementById('hauptView').style.display = 'block';
+        }
+
+        // ============================================================
+        // LOGIN (die EINZIGE login-Funktion)
+        // ============================================================
+        
         async function login() {
             const pnr = document.getElementById('pnr').value;
             const passwort = document.getElementById('passwort').value;
@@ -218,7 +263,21 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    zeigeMeldung('loginMessage', 'Login erfolgreich!', 'success');
+                    aktuellerMitarbeiter = data.mitarbeiter;
+                    localStorage.setItem('token', data.token);
+                    
+                    // Zur Hauptansicht wechseln
+                    zeigeHauptansicht();
+
+                    // Aktuelle KW ermitteln und Schichtplan laden
+                    const jetzt = new Date();
+                    aktuelleKW = getKalenderwoche(jetzt);
+                    aktuellesJahr = jetzt.getFullYear();
+                    
+                    document.getElementById('kwWert').textContent = aktuelleKW;
+                    document.getElementById('jahrWert').textContent = aktuellesJahr;
+                    
+                    ladeSchichtplan(aktuelleKW, aktuellesJahr);
                 } else {
                     zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
                 }
@@ -227,6 +286,10 @@
             }
         }
 
+        // ============================================================
+        // AKTIVIERUNG
+        // ============================================================
+        
         async function aktivieren() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
@@ -272,27 +335,143 @@
             }
         }
 
-        function zeigeLogin() {
-            document.getElementById('loginView').style.display = 'block';
-            document.getElementById('aktivierungView').style.display = 'none';
+        // ============================================================
+        // SCHICHTPLAN FUNKTIONEN
+        // ============================================================
 
-            const pnr = document.getElementById('aktivPnr').value;
+        async function ladeSchichtplan(kw, jahr) {
+            if (!aktuellerMitarbeiter) {
+                zeigeMeldung('hauptMessage', '❌ Kein Mitarbeiter eingeloggt', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${serverUrl}/api/schichten?mitarbeiterId=${aktuellerMitarbeiter.id}&kw=${kw}&jahr=${jahr}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    zeigeSchichten(data.schichten, kw, jahr);
+                } else {
+                    zeigeMeldung('hauptMessage', '❌ Fehler beim Laden des Schichtplans', 'error');
+                }
+            } catch (error) {
+                zeigeMeldung('hauptMessage', 'Verbindungsfehler: ' + error.message, 'error');
+            }
+        }
+
+        function zeigeSchichten(schichten, kw, jahr) {
+            let html = '';
+
+            schichten.forEach(s => {
+                html += `
+                    <div class="schicht-card" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <strong style="font-size: 16px;">${s.tag}</strong>
+                            <span style="color: #666;">${s.datum}</span>
+                        </div>
+                `;
+
+                if (s.frueh && s.frueh.hatSchicht) {
+                    html += `
+                        <div style="background: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                            🌅 Früh: ${s.frueh.von} - ${s.frueh.bis}<br>
+                            <small style="color: #555;">${s.frueh.fahrzeug}</small>
+                        </div>
+                    `;
+                }
+
+                if (s.spaet && s.spaet.hatSchicht) {
+                    html += `
+                        <div style="background: #fff3e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                            🌇 Spät: ${s.spaet.von} - ${s.spaet.bis}<br>
+                            <small style="color: #555;">${s.spaet.fahrzeug}</small>
+                        </div>
+                    `;
+                }
+
+                if ((!s.frueh || !s.frueh.hatSchicht) && (!s.spaet || !s.spaet.hatSchicht)) {
+                    html += `
+                        <div style="background: #f5f5f5; padding: 8px; border-radius: 5px; text-align: center; color: #999;">
+                            🆓 Frei
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+            });
+
+            document.getElementById('schichtenContainer').innerHTML = html;
+        }
+
+        function getKalenderwoche(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        }
+
+        function vorherigeWoche() {
+            aktuelleKW--;
+            if (aktuelleKW < 1) {
+                aktuelleKW = 52;
+                aktuellesJahr--;
+            }
+            document.getElementById('kwWert').textContent = aktuelleKW;
+            document.getElementById('jahrWert').textContent = aktuellesJahr;
+            ladeSchichtplan(aktuelleKW, aktuellesJahr);
+        }
+
+        function naechsteWoche() {
+            aktuelleKW++;
+            if (aktuelleKW > 52) {
+                aktuelleKW = 1;
+                aktuellesJahr++;
+            }
+            document.getElementById('kwWert').textContent = aktuelleKW;
+            document.getElementById('jahrWert').textContent = aktuellesJahr;
+            ladeSchichtplan(aktuelleKW, aktuellesJahr);
+        }
+
+        function logout() {
+            aktuellerMitarbeiter = null;
+            localStorage.removeItem('token');
+            document.getElementById('hauptView').style.display = 'none';
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('passwort').value = '';
+            
+            // PNR wieder aus der URL holen
+            const urlParams = new URLSearchParams(window.location.search);
+            const pnr = urlParams.get('pnr');
             if (pnr) {
                 document.getElementById('pnr').value = pnr;
             }
         }
 
-        function zeigeAktivierung() {
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('aktivierungView').style.display = 'block';
-        }
+        // ============================================================
+        // BEIM LADEN
+        // ============================================================
+        
+        window.addEventListener('load', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const pnr = urlParams.get('pnr');
 
-        function zeigeMeldung(elementId, text, typ) {
-            const msg = document.getElementById(elementId);
-            msg.textContent = text;
-            msg.className = 'message ' + typ;
-        }
+            if (token && pnr) {
+                // Aktivierungsmodus
+                document.getElementById('aktivPnr').value = pnr;
+                zeigeAktivierung();
+            } else if (pnr) {
+                // Normaler Login
+                document.getElementById('pnr').value = pnr;
+                zeigeLogin();
+            }
+        });
     </script>
 </body>
-
 </html>
