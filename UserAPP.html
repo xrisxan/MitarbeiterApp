@@ -180,7 +180,8 @@
 
     <script>
         // Server-URL aus aktueller URL ermitteln
-        const serverUrl = window.location.protocol + '//' + window.location.host;
+// Server-URL für die API (Cloudflare Workers)
+        const serverUrl = 'https://mitarbeiter-api.xrisxan.workers.dev';
 
         // Beim Laden prüfen ob Token in URL
         window.addEventListener('load', function () {
@@ -293,4 +294,5 @@
         }
     </script>
 </body>
+
 </html>
