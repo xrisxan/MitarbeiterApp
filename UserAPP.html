@@ -18,11 +18,21 @@
         .container {
             background: white;
             width: 100%;
-            max-width: 1300px;  /* ← von 400px auf 1200px erhöht */
             margin: 0 auto;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
+            transition: max-width 0.3s ease;
+        }
+        
+        /* Schmaler Modus (für Login/Aktivierung) */
+        .container.schmal {
+            max-width: 400px;
+        }
+        
+        /* Breiter Modus (für Schichtplan) */
+        .container.breit {
+            max-width: 1200px;
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -76,31 +86,25 @@
     }
 }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>⚡ MA-App</h1>
-            <p>Mitarbeiter-Portal</p>
-        </div>
-
-        <div class="content">
-            <!-- LOGIN VIEW -->
-            <div id="loginView">
-                <h2 style="margin-bottom: 20px;">👤 Mitarbeiter-Login</h2>
-                <div class="form-group">
-                    <label>Personalnummer</label>
-                    <input type="text" id="pnr" readonly>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>⚡ MA-App</h1>
+                        <p>Mitarbeiter-Portal</p>
+                    </div>
+            
+                    <div class="content">
+                    <!-- Login View (immer schmal) -->
+                    <div id="loginView" style="max-width: 400px; margin: 0 auto;">...</div>
+                    
+                    <!-- Aktivierung View (immer schmal) -->
+                    <div id="aktivierungView" style="max-width: 400px; margin: 0 auto;">...</div>
+                    
+                    <!-- Hauptansicht (breit) -->
+                    <div id="hauptView" style="width: 100%;">...</div>
                 </div>
-                <div class="form-group">
-                    <label>Passwort</label>
-                    <input type="password" id="passwort" placeholder="Passwort eingeben">
-                </div>
-                <button onclick="login()">Anmelden</button>
-                <button class="link-button" onclick="zeigeAktivierung()">Noch nicht aktiviert?</button>
-                <div id="loginMessage" class="message"></div>
             </div>
-
             <!-- AKTIVIERUNG VIEW -->
             <div id="aktivierungView" style="display: none;">
                 <h2 style="margin-bottom: 20px;">🔐 Passwort festlegen</h2>
@@ -159,18 +163,24 @@
             document.getElementById('loginView').style.display = 'block';
             document.getElementById('aktivierungView').style.display = 'none';
             document.getElementById('hauptView').style.display = 'none';
+            document.querySelector('.container').classList.remove('breit');
+            document.querySelector('.container').classList.add('schmal');
         }
-
+        
         function zeigeAktivierung() {
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('aktivierungView').style.display = 'block';
             document.getElementById('hauptView').style.display = 'none';
+            document.querySelector('.container').classList.remove('breit');
+            document.querySelector('.container').classList.add('schmal');
         }
-
+        
         function zeigeHauptansicht() {
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('aktivierungView').style.display = 'none';
             document.getElementById('hauptView').style.display = 'block';
+            document.querySelector('.container').classList.remove('schmal');
+            document.querySelector('.container').classList.add('breit');
         }
 
         // ============================================================
@@ -377,6 +387,7 @@
     </script>
 </body>
 </html>
+
 
 
 
