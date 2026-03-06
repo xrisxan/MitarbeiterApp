@@ -184,29 +184,45 @@
         // LOGIN
         // ============================================================
         async function login() {
-          const pnr = document.getElementById('pnr').value;
-          const passwort = document.getElementById('passwort').value;
+            const pnr = document.getElementById('pnr').value;
+            const passwort = document.getElementById('passwort').value;
         
-          try {
-            const response = await fetch(`${serverUrl}?action=login`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify({ pnr, passwort })
-            });
-        
-            const data = await response.json();
-            console.log('Login-Antwort:', data); // Zum Debuggen
-        
-            if (data.success) {
-              aktuellerMitarbeiter = data.mitarbeiter;
-              zeigeHauptansicht();
-            } else {
-              zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
+            if (!pnr || !passwort) {
+                zeigeMeldung('loginMessage', 'Bitte Passwort eingeben!', 'error');
+                return;
             }
-          } catch (error) {
-            console.error('Fehler:', error);
-            zeigeMeldung('loginMessage', 'Fehler: ' + error.message, 'error');
-          }
+        
+            try {
+                const response = await fetch(`${serverUrl}?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ pnr, passwort })
+                });
+        
+                const data = await response.json();
+                console.log('Login-Antwort:', data);
+        
+                if (data.success && data.mitarbeiter) {
+                    // Mitarbeiter speichern
+                    aktuellerMitarbeiter = data.mitarbeiter;
+                    localStorage.setItem('token', data.token);
+                    
+                    // Zur Hauptansicht wechseln
+                    zeigeHauptansicht();
+                    
+                    // Aktuelle KW und Jahr in der Anzeige aktualisieren
+                    document.getElementById('kwWert').textContent = aktuelleKW;
+                    document.getElementById('jahrWert').textContent = aktuellesJahr;
+                    
+                    // Schichtplan laden
+                    ladeSchichtplan(aktuelleKW, aktuellesJahr);
+                } else {
+                    zeigeMeldung('loginMessage', '❌ Falsches Passwort!', 'error');
+                }
+            } catch (error) {
+                console.error('Fehler:', error);
+                zeigeMeldung('loginMessage', 'Fehler: ' + error.message, 'error');
+            }
         }
 
         // ============================================================
@@ -390,6 +406,7 @@
     </script>
 </body>
 </html>
+
 
 
 
