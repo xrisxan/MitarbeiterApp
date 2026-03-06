@@ -381,18 +381,25 @@
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             const pnr = urlParams.get('pnr');
-
+        
             if (token && pnr) {
                 document.getElementById('aktivPnr').value = pnr;
                 zeigeAktivierung();
             } else if (pnr) {
                 document.getElementById('pnr').value = pnr;
+                // KW für heute berechnen
+                const heute = new Date();
+                aktuelleKW = getKalenderwoche(heute);
+                aktuellesJahr = heute.getFullYear();
+                document.getElementById('kwWert').textContent = aktuelleKW;
+                document.getElementById('jahrWert').textContent = aktuellesJahr;
                 zeigeLogin();
             }
         });
     </script>
 </body>
 </html>
+
 
 
 
