@@ -388,9 +388,10 @@
             } else if (pnr) {
                 document.getElementById('pnr').value = pnr;
                 
-                // FESTE KW 11 für die Testdaten
-                aktuelleKW = 10;
-                aktuellesJahr = 2026;
+                // FESTE KW = aktuelle KW
+                const heute = new Date();
+                aktuelleKW = getKalenderwoche(heute);
+                aktuellesJahr = heute.getFullYear();
                 
                 document.getElementById('kwWert').textContent = aktuelleKW;
                 document.getElementById('jahrWert').textContent = aktuellesJahr;
@@ -401,4 +402,5 @@
     </script>
 </body>
 </html>
+
 
