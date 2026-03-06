@@ -141,9 +141,17 @@
         function getKalenderwoche(date) {
             const d = new Date(date);
             d.setHours(0, 0, 0, 0);
+            
+            // Donnerstag der aktuellen Woche (ISO 8601)
             d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            
+            // 4. Januar ist immer in Woche 1
             const week1 = new Date(d.getFullYear(), 0, 4);
-            return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            week1.setDate(week1.getDate() - (week1.getDay() + 6) % 7);
+            
+            // Differenz in Wochen
+            const diffDays = Math.floor((d - week1) / (1000 * 60 * 60 * 24));
+            return Math.floor(diffDays / 7) + 1;
         }
         // ============================================================
         // VIEWS
@@ -385,6 +393,7 @@
     </script>
 </body>
 </html>
+
 
 
 
