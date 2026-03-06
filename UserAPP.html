@@ -387,18 +387,21 @@
                 zeigeAktivierung();
             } else if (pnr) {
                 document.getElementById('pnr').value = pnr;
-                // KW für heute berechnen
-                const heute = new Date();
-                aktuelleKW = getKalenderwoche(heute);
-                aktuellesJahr = heute.getFullYear();
+                
+                // FESTE KW 11 für die Testdaten
+                aktuelleKW = 11;
+                aktuellesJahr = 2026;
+                
                 document.getElementById('kwWert').textContent = aktuelleKW;
                 document.getElementById('jahrWert').textContent = aktuellesJahr;
+                
                 zeigeLogin();
             }
         });
     </script>
 </body>
 </html>
+
 
 
 
