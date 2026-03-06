@@ -388,7 +388,7 @@
             } else if (pnr) {
                 document.getElementById('pnr').value = pnr;
                 
-                // FESTE KW = aktuelle KW
+                // AKTUELLE WOCHE berechnen
                 const heute = new Date();
                 aktuelleKW = getKalenderwoche(heute);
                 aktuellesJahr = heute.getFullYear();
@@ -402,5 +402,6 @@
     </script>
 </body>
 </html>
+
 
 
