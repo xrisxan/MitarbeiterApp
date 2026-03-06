@@ -262,53 +262,70 @@
         }
 
         function zeigeSchichten(schichten) {
-            let html = '<div style="display: flex; flex-direction: row; gap: 10px; overflow-x: auto;">';
+            let html = '<div style="display: flex; flex-direction: row; gap: 10px; overflow-x: auto; padding: 10px 0;">';
             
             schichten.forEach(s => {
-                // Hilfsfunktion zum Formatieren der Uhrzeit
-                function formatUhrzeit(zeitString) {
+                // Funktion zum Extrahieren der Uhrzeit aus dem Google-Zeitformat
+                function extrahiereUhrzeit(zeitString) {
                     if (!zeitString) return '';
-                    // Wenn es ein ISO-String ist (wie von Google Sheets)
+                    
+                    // Fall 1: ISO-String von Google Sheets (1899-12-30T05:00:00.000Z)
                     if (zeitString.includes('T')) {
-                        const date = new Date(zeitString);
-                        return date.getHours().toString().padStart(2, '0') + ':' + 
-                               date.getMinutes().toString().padStart(2, '0');
+                        const match = zeitString.match(/T(\d{2}):(\d{2})/);
+                        if (match) {
+                            return match[1] + ':' + match[2];
+                        }
                     }
-                    return zeitString;
+                    
+                    // Fall 2: Normales Format (06:00)
+                    if (zeitString.includes(':')) {
+                        return zeitString;
+                    }
+                    
+                    return '';
                 }
         
                 html += `
                     <div style="min-width: 130px; background: white; border-radius: 10px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                        <div style="text-align: center; font-weight: bold;">${s.tag}</div>
-                        <div style="text-align: center; font-size: 12px; color: #666; margin-bottom: 8px;">${s.datum}</div>
+                        <div style="text-align: center; font-weight: bold; border-bottom: 2px solid #667eea; padding-bottom: 5px; margin-bottom: 8px;">
+                            ${s.tag}
+                            <div style="font-size: 11px; color: #666;">${s.datum}</div>
+                        </div>
                 `;
         
+                // Frühschicht
                 if (s.frueh?.hatSchicht) {
-                    const von = formatUhrzeit(s.frueh.von);
-                    const bis = formatUhrzeit(s.frueh.bis);
+                    const von = extrahiereUhrzeit(s.frueh.von);
+                    const bis = extrahiereUhrzeit(s.frueh.bis);
+                    const fahrzeug = s.frueh.fahrzeug || '';
+                    
                     html += `
-                        <div style="background: #e3f2fd; border-radius: 5px; padding: 5px; margin-bottom: 5px; font-size: 12px;">
-                            <strong>🌅 Früh</strong><br>
-                            ${von} - ${bis}<br>
-                            <small>${s.frueh.fahrzeug}</small>
+                        <div style="background: #e3f2fd; border-radius: 5px; padding: 6px; margin-bottom: 5px; font-size: 12px;">
+                            <div style="font-weight: bold;">🌅 Früh</div>
+                            <div>${von} - ${bis}</div>
+                            <div style="font-size: 10px; color: #555; margin-top: 3px;">${fahrzeug}</div>
                         </div>
                     `;
                 }
         
+                // Spätschicht
                 if (s.spaet?.hatSchicht) {
-                    const von = formatUhrzeit(s.spaet.von);
-                    const bis = formatUhrzeit(s.spaet.bis);
+                    const von = extrahiereUhrzeit(s.spaet.von);
+                    const bis = extrahiereUhrzeit(s.spaet.bis);
+                    const fahrzeug = s.spaet.fahrzeug || '';
+                    
                     html += `
-                        <div style="background: #fff3e0; border-radius: 5px; padding: 5px; margin-bottom: 5px; font-size: 12px;">
-                            <strong>🌇 Spät</strong><br>
-                            ${von} - ${bis}<br>
-                            <small>${s.spaet.fahrzeug}</small>
+                        <div style="background: #fff3e0; border-radius: 5px; padding: 6px; margin-bottom: 5px; font-size: 12px;">
+                            <div style="font-weight: bold;">🌇 Spät</div>
+                            <div>${von} - ${bis}</div>
+                            <div style="font-size: 10px; color: #555; margin-top: 3px;">${fahrzeug}</div>
                         </div>
                     `;
                 }
         
+                // Frei
                 if (!s.frueh?.hatSchicht && !s.spaet?.hatSchicht) {
-                    html += `<div style="background: #f5f5f5; border-radius: 5px; padding: 10px; text-align: center; color: #999; font-size: 12px;">🆓 Frei</div>`;
+                    html += `<div style="background: #f5f5f5; border-radius: 5px; padding: 12px; text-align: center; color: #999; font-size: 12px;">🆓 Frei</div>`;
                 }
         
                 html += `</div>`;
@@ -360,6 +377,7 @@
     </script>
 </body>
 </html>
+
 
 
 
